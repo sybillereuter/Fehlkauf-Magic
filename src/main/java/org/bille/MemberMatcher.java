@@ -8,10 +8,10 @@ import java.util.stream.IntStream;
 
 public class MemberMatcher {
 
-    List<MemberData> members;
+    final List<MemberData> members;
     private int initialMax;
     private int currentMax;
-    int reduction;
+    final int reduction;
 
     public MemberMatcher (List<MemberData> members) {
 

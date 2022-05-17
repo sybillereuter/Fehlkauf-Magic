@@ -1,5 +1,7 @@
 package org.bille;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Objects;
 
 public class MemberData implements Comparable {
@@ -55,7 +57,7 @@ public class MemberData implements Comparable {
     }
 
     @Override
-    public int compareTo(Object o) {
+    public int compareTo(@NotNull Object o) {
         MemberData o1 = (MemberData) o;
         return this.getUserName().compareToIgnoreCase(o1.getUserName());
     }

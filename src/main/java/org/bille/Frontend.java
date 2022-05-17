@@ -14,10 +14,10 @@ import java.util.List;
 public class Frontend extends JPanel implements ActionListener {
 
     static private final String newline = "\n";
-    JButton openButton, saveButton;
-    JTextArea log;
-    JFileChooser csvFileChooser;
-    JFileChooser directoryChooser;
+    final JButton openButton, saveButton;
+    final JTextArea log;
+    final JFileChooser csvFileChooser;
+    final JFileChooser directoryChooser;
 
     FehlkaufRound matches = null;
     String filename = "";
@@ -89,6 +89,7 @@ public class Frontend extends JPanel implements ActionListener {
             int reduction = 0;
             matches = matcher.match();
             while (matches == null) {  // handle max!!
+                assert data != null;
                 matcher = new MemberMatcher(data, reduction+=1);
                 matches = matcher.match();
             }
