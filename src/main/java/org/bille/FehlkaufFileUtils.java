@@ -7,10 +7,12 @@ import com.opencsv.exceptions.CsvException;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.FileUtils;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeMap;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -18,6 +20,8 @@ public final class FehlkaufFileUtils {
 
     public static final String PC_FORMAT = "pc";
     public static final String READABLE = "re";
+    public static final String PC_RECEIVERS = "pr";
+    public static final String OVERVIEW = "ov";
 
     public static List<MemberData> readFrom(String fileName) throws IOException, CsvException {
 
@@ -40,8 +44,33 @@ public final class FehlkaufFileUtils {
     public static void write(FehlkaufRound matches, File file, String method) throws IOException {
 
         FileUtils.write(file,
-                method.equals(PC_FORMAT) ? getPCMarkup(matches) : getReadableOutput(matches),
+                method.equals(PC_FORMAT) ? getPCMarkup(matches) : 
+                        method.equals(PC_RECEIVERS) ? getReceiverList(matches) :
+                        method.equals(OVERVIEW) ? getOverview(matches) :
+                        getReadableOutput(matches),
                 Charsets.UTF_8);
+    }
+
+    public static String getOverview(FehlkaufRound round) {
+
+        TreeMap<Integer, HashSet<String>> overview = round.getOverview();
+        StringBuilder builder  = new StringBuilder();
+        builder.append("Die Karten in dieser Runde:\n");
+        List<Integer> sortedNumbers = overview.keySet().stream()
+                .sorted((x,y) -> Integer.compare(y,x))
+                .collect(Collectors.toList());
+        for (Integer cards : sortedNumbers) {
+            builder.append(
+                    Objects.equals(cards, round.getMax()) ? String.format("\n**Maximale Kartenanzahl (%s)**\n\n", cards)
+                            : String.format("\n**%s Karten**\n\n", cards));
+            HashSet<String> strings = overview.get(cards);
+            List<String> members = strings.stream().sorted(String::compareToIgnoreCase).collect(Collectors.toList());
+            for (String member : members) {
+                builder.append(String.format("%" +
+                        "s\n", member));
+            }
+        }
+        return builder.toString();
     }
 
     public static String getPCMarkup(FehlkaufRound round) {
@@ -71,6 +100,22 @@ public final class FehlkaufFileUtils {
                     builder.append(String.format("%s\n", sender.getUserName()));
                 }
                 builder.append("\n");
+            }
+        }
+        return builder.toString();
+    }
+
+    private static String getReceiverList(FehlkaufRound round) {
+
+        StringBuilder builder = new StringBuilder();
+        TreeMap<MemberData, List<MemberData>> receivers = round.getReceivers();
+        for (MemberData member : receivers.keySet()) {
+            if (!member.hasNoCards()) {
+                builder.append(String.format("**%s bekommt %d Karten von:**\n[details=\"Summary\"]\n", member.getUserName(), member.getCards()));
+                for (MemberData sender : receivers.get(member)) {
+                    builder.append(String.format("%s\n", sender.getUserName()));
+                }
+                builder.append("[/details]\n");
             }
         }
         return builder.toString();

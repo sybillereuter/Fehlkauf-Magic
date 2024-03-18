@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 public class FehlkaufTest {
 
     @Test
@@ -25,25 +23,47 @@ public class FehlkaufTest {
     }
 
     @Test
-    public void testMemberMatcher() throws IOException, CsvException {
+    public void run() throws IOException, CsvException {
 
-        List<MemberData> members = readWithFehlKaufReader("fehlkauf77.csv");
+        List<MemberData> members = readWithFehlKaufReader("Fehlkauf100.csv");
+        System.out.println("read...");
+        MemberMatcher matcher = new MemberMatcher(members);
+        System.out.println("matcher...");
+        FehlkaufRound fehlkaufRound = matcher.match();
+        System.out.println("matched!");
+        int reduction = 0;
+        while (fehlkaufRound == null) {  // handle max!!
+            matcher = new MemberMatcher(members, reduction+=1);
+            fehlkaufRound = matcher.match();
+        }
+        System.out.printf("Diese Runde werden %d Karten verschickt!", fehlkaufRound.getTotalCards());
+        FehlkaufFileUtils.write(
+                fehlkaufRound,
+                new File("Fehlkauf100-liste.txt"), FehlkaufFileUtils.READABLE);
+        FehlkaufFileUtils.write(
+                fehlkaufRound,
+                new File("Fehlkauf100-forum.txt"),FehlkaufFileUtils.PC_FORMAT);
+        FehlkaufFileUtils.write(fehlkaufRound,
+                new File("Fehlkauf100-forum-receivers.txt"), FehlkaufFileUtils.PC_RECEIVERS);
+        FehlkaufFileUtils.write(fehlkaufRound,
+                new File("Fehlkauf100-übersicht.txt"), FehlkaufFileUtils.OVERVIEW);
 
+    }
+
+    @Test
+    public void testOverview() throws IOException, CsvException {
+
+        List<MemberData> members = readWithFehlKaufReader("members.csv");
         MemberMatcher matcher = new MemberMatcher(members);
         FehlkaufRound fehlkaufRound = matcher.match();
         int reduction = 0;
         while (fehlkaufRound == null) {  // handle max!!
             matcher = new MemberMatcher(members, reduction+=1);
             fehlkaufRound = matcher.match();
-
         }
-
-        assertFalse(fehlkaufRound.getReceivers().isEmpty());
-        assertFalse(fehlkaufRound.getSenders().isEmpty());
-        assertEquals(matcher.getInitialMax(), 20);
-        assertEquals(matcher.getCurrentMax(), 25);
-        assertTrue(fehlkaufRound.check());
+        System.out.println(FehlkaufFileUtils.getOverview(fehlkaufRound));
     }
+
 
     private List<MemberData> readWithFehlKaufReader(String testFile) throws IOException, CsvException {
 

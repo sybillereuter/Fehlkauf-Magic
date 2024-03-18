@@ -31,20 +31,24 @@ public class MemberMatcher {
         TreeMap<MemberData, Integer> membersByReceivedCards = getMembersByReceivedCards();
         TreeMap<MemberData, List<MemberData>> matchedMembers = new TreeMap<>();
 
+        // todo ne "fehlkaufexception" wenn member max ist aber n anderer mehr karten hat
+
         for (MemberData member : members) {
             int cards = member.getCards();
             List<MemberData> options = getOptions(membersByReceivedCards, member);
             List<MemberData> matches = new ArrayList<>();
-            if (member.isMax() && options.size() < cards) {return null;}
+            if (member.isMax() && options.size() < cards) {
+                return null;
+            }
             try {
                 IntStream.range(0, cards).mapToObj(options::get).forEach(receiver -> {
                 matches.add(receiver);
                 membersByReceivedCards.put(receiver, membersByReceivedCards.get(receiver) + 1);
                 });
             } catch (IndexOutOfBoundsException e) {
+                // todo: das kann ewig passieren wenn zu große zahl gewünscht ist!
                 return null;
             }
-
             matchedMembers.put(member, matches.stream().sorted().collect(Collectors.toList()));
         }
         return new FehlkaufRound(matchedMembers);

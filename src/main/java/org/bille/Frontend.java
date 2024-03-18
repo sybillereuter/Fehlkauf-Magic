@@ -124,6 +124,18 @@ public class Frontend extends JPanel implements ActionListener {
                 } catch (IOException ex) {
                     log.append(ex.getMessage());
                 }
+                File receiverList = new File(file, filename + "-forum-empfänger.txt");
+                try {
+                    FehlkaufFileUtils.write(matches, receiverList, FehlkaufFileUtils.PC_RECEIVERS);
+                } catch (IOException ex) {
+                    log.append(ex.getMessage());
+                }
+                File overview = new File(file, filename + "-übersicht.txt");
+                try {
+                    FehlkaufFileUtils.write(matches, overview, FehlkaufFileUtils.OVERVIEW);
+                } catch (IOException ex) {
+                    log.append(ex.getMessage());
+                }
             } else {
                 log.append("Save command cancelled by user." + newline);
             }

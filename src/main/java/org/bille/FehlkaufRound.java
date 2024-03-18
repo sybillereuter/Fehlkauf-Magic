@@ -1,8 +1,10 @@
 package org.bille;
 
+import org.apache.maven.surefire.shared.compress.utils.Sets;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class FehlkaufRound {
 
@@ -22,6 +24,11 @@ public class FehlkaufRound {
         return membersFromMembers;
     }
 
+    public Integer getMax() {
+        return Collections.max(membersToMembers.keySet().stream()
+                .map(MemberData::getCards).collect(Collectors.toList()));
+    }
+
     public boolean check() {
 
         return membersToMembers.keySet()
@@ -30,6 +37,22 @@ public class FehlkaufRound {
                 && membersFromMembers.keySet()
                 .stream()
                 .noneMatch(receiver -> membersFromMembers.get(receiver).size() != receiver.getCards());
+    }
+
+    public int getTotalCards() {
+        return membersToMembers.keySet().stream().mapToInt(MemberData::getCards).sum();
+    }
+
+    public TreeMap<Integer, HashSet<String>> getOverview() {
+        TreeMap<Integer, HashSet<String>> overview = new TreeMap<>();
+        membersToMembers.keySet().forEach(memberData -> {
+            if (overview.containsKey(memberData.getCards())) {
+                overview.get(memberData.getCards()).add(memberData.getUserName());
+            } else {
+                overview.put(memberData.getCards(), Sets.newHashSet(memberData.getUserName()));
+            }
+        });
+        return overview;
     }
 
     private static @NotNull TreeMap<MemberData, List<MemberData>> initMembersFromMembers(Map<MemberData, List<MemberData>> membersToMembers) {
