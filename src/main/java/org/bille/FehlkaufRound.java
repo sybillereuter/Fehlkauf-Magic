@@ -55,6 +55,14 @@ public class FehlkaufRound {
         return overview;
     }
 
+    public List<String> getUsernames() {
+        return membersFromMembers.keySet().stream()
+                .filter(x -> !x.hasNoCards())
+                .map(MemberData::getUserName)
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
     private static @NotNull TreeMap<MemberData, List<MemberData>> initMembersFromMembers(Map<MemberData, List<MemberData>> membersToMembers) {
         TreeMap<MemberData, List<MemberData>> membersFromMembers = new TreeMap<>();
         membersToMembers.keySet().forEach(member -> {
