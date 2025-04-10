@@ -11,7 +11,7 @@
             <directory>${project.build.directory}</directory>
             <outputDirectory />
             <includes>
-                <include>Fehlkauf Wizard.exe</include>
+                <include>FehlkaufWizard.exe</include>
             </includes>
         </fileSet>
         <fileSet>
