@@ -35,7 +35,7 @@ public class Frontend extends JPanel implements ActionListener {
                     "muss eine .csv-Datei sein, mit den Spalten: Username;Addresse;Kartenzahl \n\n" +
                     "Wähle dafür csv-Export bei Excel oder LibreOffice, mit den Einstellungen: \n" +
                     "Encoding UTF-8, Zeilentrenner \";\". Wenn du die Datei mit einem Texteditor öffnest, " +
-                    "sollte ein Eintag etwa so aussehen:\n\n" +
+                    "sollte ein Eintrag etwa so aussehen:\n\n" +
                     "mieo4;\"Frau Miep\n" +
                     "Miep-von-Miep-Str. 87\n" +
                     "87654 München\";3\n"));
