@@ -22,6 +22,7 @@ public final class FehlkaufFileUtils {
     public static final String READABLE = "re";
     public static final String PC_RECEIVERS = "pr";
     public static final String OVERVIEW = "ov";
+    public static final String MESSAGE_TO = "ms";
 
     public static List<MemberData> readFrom(String fileName) throws IOException, CsvException {
 
@@ -32,7 +33,7 @@ public final class FehlkaufFileUtils {
         List<String[]> lines = reader.readAll();
         for (String[] line : lines) {
             String name = line[0].replaceAll("\uFEFF", "");
-            String address = line[1].replaceAll(", ", "\n");
+            String address = line[1];
             String cardsString = line[2];
             boolean isMax = "max".equalsIgnoreCase(cardsString);
             int cards = !isMax && !"".equalsIgnoreCase(cardsString) ? Integer.parseInt(cardsString) : 0;
@@ -47,30 +48,9 @@ public final class FehlkaufFileUtils {
                 method.equals(PC_FORMAT) ? getPCMarkup(matches) : 
                         method.equals(PC_RECEIVERS) ? getReceiverList(matches) :
                         method.equals(OVERVIEW) ? getOverview(matches) :
+                        method.equals(MESSAGE_TO) ? getMessageReceivers(matches) :
                         getReadableOutput(matches),
                 Charsets.UTF_8);
-    }
-
-    public static String getOverview(FehlkaufRound round) {
-
-        TreeMap<Integer, HashSet<String>> overview = round.getOverview();
-        StringBuilder builder  = new StringBuilder();
-        builder.append("Die Karten in dieser Runde:\n");
-        List<Integer> sortedNumbers = overview.keySet().stream()
-                .sorted((x,y) -> Integer.compare(y,x))
-                .collect(Collectors.toList());
-        for (Integer cards : sortedNumbers) {
-            builder.append(
-                    Objects.equals(cards, round.getMax()) ? String.format("\n**Maximale Kartenanzahl (%s)**\n\n", cards)
-                            : String.format("\n**%s Karten**\n\n", cards));
-            HashSet<String> strings = overview.get(cards);
-            List<String> members = strings.stream().sorted(String::compareToIgnoreCase).collect(Collectors.toList());
-            for (String member : members) {
-                builder.append(String.format("%" +
-                        "s\n", member));
-            }
-        }
-        return builder.toString();
     }
 
     public static String getPCMarkup(FehlkaufRound round) {
@@ -105,19 +85,54 @@ public final class FehlkaufFileUtils {
         return builder.toString();
     }
 
+    public static String getOverview(FehlkaufRound round) {
+
+        TreeMap<Integer, HashSet<String>> overview = round.getOverview();
+        StringBuilder builder  = new StringBuilder();
+        builder.append("Die Karten in dieser Runde:\n");
+        List<Integer> sortedNumbers = overview.keySet().stream()
+                .sorted((x,y) -> Integer.compare(y,x))
+                .collect(Collectors.toList());
+        for (Integer cards : sortedNumbers) {
+            builder.append(
+                    Objects.equals(cards, round.getMax()) ? String.format("\n**Maximale Kartenanzahl (%s)**\n\n", cards)
+                            : String.format("\n**%s Karten**\n\n", cards));
+            HashSet<String> strings = overview.get(cards);
+            List<String> members = strings.stream().sorted(String::compareToIgnoreCase).collect(Collectors.toList());
+            members.stream().map(member -> String.format(String.format("%%s\n"), member)).forEach(builder::append);
+        }
+        return builder.toString();
+    }
+
+    private static String getMessageReceivers(FehlkaufRound matches) {
+        List<String> usernames = matches.getUsernames();
+
+        return "a-f:\n" + filterAndJoin(usernames, "^[a-f].*") + "\n" +
+                "g-r:\n" + filterAndJoin(usernames, "^[g-r].*") + "\n" +
+                "s-z:\n" + filterAndJoin(usernames, "^[s-z].*") + "\n";
+    }
+
+    private static String filterAndJoin(List<String> usernames, String regex) {
+        return usernames.stream()
+                .filter(name -> name.toLowerCase().matches(regex))
+                .collect(Collectors.joining(" "));
+    }
+
     private static String getReceiverList(FehlkaufRound round) {
 
-        StringBuilder builder = new StringBuilder();
+        String builder = "";
         TreeMap<MemberData, List<MemberData>> receivers = round.getReceivers();
         for (MemberData member : receivers.keySet()) {
             if (!member.hasNoCards()) {
-                builder.append(String.format("**%s bekommt %d Karten von:**\n[details=\"Summary\"]\n", member.getUserName(), member.getCards()));
-                for (MemberData sender : receivers.get(member)) {
-                    builder.append(String.format("%s\n", sender.getUserName()));
-                }
-                builder.append("[/details]\n");
+                builder = receivers.get(member)
+                        .stream()
+                        .map(sender -> String.format("%s\n", sender.getUserName()))
+                        .collect(Collectors.joining("",
+                                String.format("**%s bekommt %d Karten von:**\n[details=\"Summary\"]\n", member.getUserName(),
+                                        member.getCards()),
+                                "[/details]\n"));
             }
         }
-        return builder.toString();
+        return builder;
     }
 }
