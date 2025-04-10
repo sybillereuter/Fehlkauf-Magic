@@ -11,53 +11,67 @@ public class MemberMatcher {
     final List<MemberData> members;
     private int initialMax;
     private int currentMax;
-    final int reduction;
+    int reduction;
 
-    public MemberMatcher (List<MemberData> members) {
-
+    public MemberMatcher(List<MemberData> members) {
         this(members, 1);
     }
 
-    public MemberMatcher (List<MemberData> members, int reduction) {
-
+    public MemberMatcher(List<MemberData> members, int reduction) {
         this.reduction = reduction;
         this.members = members;
         computeMax();
         members.sort(Comparator.comparing(MemberData::getCards).reversed());
     }
 
-    public FehlkaufRound match() throws ArrayIndexOutOfBoundsException {
-
-        TreeMap<MemberData, Integer> membersByReceivedCards = getMembersByReceivedCards();
+    public FehlkaufRound match() {
+        boolean solutionFound = false;
         TreeMap<MemberData, List<MemberData>> matchedMembers = new TreeMap<>();
 
-        // todo ne "fehlkaufexception" wenn member max ist aber n anderer mehr karten hat
+        while (!solutionFound) {
+            TreeMap<MemberData, Integer> membersByReceivedCards = getMembersByReceivedCards();
+            matchedMembers.clear();
 
-        for (MemberData member : members) {
-            int cards = member.getCards();
-            List<MemberData> options = getOptions(membersByReceivedCards, member);
-            List<MemberData> matches = new ArrayList<>();
-            if (member.isMax() && options.size() < cards) {
-                return null;
+            solutionFound = true;
+
+            for (MemberData member : members) {
+                int cards = member.getCards();
+                List<MemberData> options = getOptions(membersByReceivedCards, member);
+                List<MemberData> matches = new ArrayList<>();
+
+                if (member.isMax() && options.size() < cards) {
+
+                    solutionFound = false;
+                    break;
+                }
+
+                try {
+                    IntStream.range(0, cards).mapToObj(options::get).forEach(receiver -> {
+                        matches.add(receiver);
+                        membersByReceivedCards.put(receiver, membersByReceivedCards.get(receiver) + 1);
+                    });
+                } catch (IndexOutOfBoundsException e) {
+                    solutionFound = false;
+                    break;
+                }
+                matchedMembers.put(member, matches.stream().sorted().collect(Collectors.toList()));
             }
-            try {
-                IntStream.range(0, cards).mapToObj(options::get).forEach(receiver -> {
-                matches.add(receiver);
-                membersByReceivedCards.put(receiver, membersByReceivedCards.get(receiver) + 1);
-                });
-            } catch (IndexOutOfBoundsException e) {
-                // todo: das kann ewig passieren wenn zu große zahl gewünscht ist!
-                return null;
+
+            if (!solutionFound) {
+                increaseReduction();
+                computeMax();
             }
-            matchedMembers.put(member, matches.stream().sorted().collect(Collectors.toList()));
         }
+
         return new FehlkaufRound(matchedMembers);
     }
+
 
     private void computeMax() {
         int initialMax = Collections.max(members.stream()
                 .filter(memberData -> !memberData.isMax())
-                .map(MemberData::getCards).collect(Collectors.toList()));
+                .map(MemberData::getCards)
+                .collect(Collectors.toList()));
         this.initialMax = initialMax;
         int maxMembers = (int) members.stream().filter(MemberData::isMax).count();
         int optimalMax = initialMax + maxMembers - reduction;
@@ -72,12 +86,16 @@ public class MemberMatcher {
     }
 
     private List<MemberData> getOptions(TreeMap<MemberData, Integer> received, MemberData member) {
-
         return received.entrySet().stream()
                 .filter(memberData -> memberData.getKey().getCards() > received.get(memberData.getKey()))
                 .filter(memberData -> !memberData.getKey().equals(member))
                 .sorted(OptionsComparator::doCompare)
-                .map(Map.Entry::getKey).collect(Collectors.toList());
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+    }
+
+    private void increaseReduction() {
+        this.reduction++;
     }
 
     public int getInitialMax() {
@@ -89,22 +107,20 @@ public class MemberMatcher {
     }
 
     private static class OptionsComparator implements Comparator<Map.Entry<MemberData, Integer>> {
-
         public static int doCompare(Map.Entry<MemberData, Integer> a, Map.Entry<MemberData, Integer> b) {
             int cmp1 = a.getValue().compareTo(b.getValue());
             if (cmp1 != 0) {
                 return cmp1;
             } else {
-
                 int y = a.getKey().getCards();
-                int x  = b.getKey().getCards();
+                int x = b.getKey().getCards();
                 return Integer.compare(x, y);
             }
         }
 
         @Override
         public int compare(Map.Entry<MemberData, Integer> o1, Map.Entry<MemberData, Integer> o2) {
-            return 0;
+            return doCompare(o1, o2);
         }
     }
 }

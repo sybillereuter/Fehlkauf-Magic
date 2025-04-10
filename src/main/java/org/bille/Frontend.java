@@ -86,14 +86,10 @@ public class Frontend extends JPanel implements ActionListener {
                     log.append(ex.toString());
                 }
             MemberMatcher matcher = new MemberMatcher(data);
-            int reduction = 0;
+
             matches = matcher.match();
-            while (matches == null) {  // handle max!!
-                assert data != null;
-                matcher = new MemberMatcher(data, reduction+=1);
-                matches = matcher.match();
-            }
-                if (matcher.getInitialMax() > matcher.getCurrentMax() || !matches.check()) {
+
+            if (matcher.getInitialMax() > matcher.getCurrentMax() || !matches.check()) {
                     log.append("ACHTUNG! Es gab Probleme bei der Zuordnung!" + newline);
                     log.append("Nicht alle gewünschten Karten konnten vergeben werden!\n\n");
                 }
@@ -106,7 +102,6 @@ public class Frontend extends JPanel implements ActionListener {
             }
             log.setCaretPosition(log.getDocument().getLength());
 
-            //Handle save button action.
         } else if (e.getSource() == saveButton) {
             int returnVal = directoryChooser.showSaveDialog(Frontend.this);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
