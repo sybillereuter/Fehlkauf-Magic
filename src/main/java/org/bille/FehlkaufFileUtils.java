@@ -120,19 +120,17 @@ public final class FehlkaufFileUtils {
 
     private static String getReceiverList(FehlkaufRound round) {
 
-        String builder = "";
+        StringBuilder builder = new StringBuilder();
         TreeMap<MemberData, List<MemberData>> receivers = round.getReceivers();
         for (MemberData member : receivers.keySet()) {
             if (!member.hasNoCards()) {
-                builder = receivers.get(member)
-                        .stream()
-                        .map(sender -> String.format("%s\n", sender.getUserName()))
-                        .collect(Collectors.joining("",
-                                String.format("**%s bekommt %d Karten von:**\n[details=\"Summary\"]\n", member.getUserName(),
-                                        member.getCards()),
-                                "[/details]\n"));
+                builder.append(String.format("**%s bekommt %d Karten von:**\n[details=\"Summary\"]\n", member.getUserName(), member.getCards()));
+                for (MemberData sender : receivers.get(member)) {
+                    builder.append(String.format("%s\n", sender.getUserName()));
+                }
+                builder.append("[/details]\n");
             }
         }
-        return builder;
+        return builder.toString();
     }
 }
