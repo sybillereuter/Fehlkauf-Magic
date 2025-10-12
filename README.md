@@ -1,5 +1,5 @@
 # 🎴 Fehlkauf Wizard
-**Ein kleines Tool, das die Adressvergabe für die Fehlkauf-Runde in der Postcrossing-Community automatisiert – weil manuelle Zuordnung von 400+ Karten an 50+ Leute doch etwas... optimierungswürdig ist.**  
+**Ein kleines Tool, das die Adressvergabe für die Fehlkauf-Runde in der Postcrossing-Community automatisiert, weil manuelle Zuordnung von 400+ Karten an 50+ Leute doch etwas... optimierungswürdig ist.**  
 
 
 ## 🔧 Was es kann
