@@ -24,6 +24,12 @@ public final class FehlkaufFileUtils {
     public static final String OVERVIEW = "ov";
     public static final String MESSAGE_TO = "ms";
 
+    private static final String[][] NAME_RANGES = {
+            {"a-f", "^[a-f].*"},
+            {"g-r", "^[g-r].*"},
+            {"s-z", "^[s-z].*"}
+    };
+
     public static List<MemberData> readFrom(String fileName) throws IOException, CsvException {
 
         List<MemberData> members = new ArrayList<>();
@@ -44,21 +50,44 @@ public final class FehlkaufFileUtils {
 
     public static void write(FehlkaufRound matches, File file, String method) throws IOException {
 
-        FileUtils.write(file,
-                method.equals(PC_FORMAT) ? getPCMarkup(matches) : 
-                        method.equals(PC_RECEIVERS) ? getReceiverList(matches) :
-                        method.equals(OVERVIEW) ? getOverview(matches) :
-                        method.equals(MESSAGE_TO) ? getMessageReceivers(matches) :
-                        getReadableOutput(matches),
-                Charsets.UTF_8);
+        if (method.equals(PC_FORMAT) || method.equals(PC_RECEIVERS)) {
+            writeMultipleFiles(matches, file, method);
+        } else {
+            String content = method.equals(OVERVIEW) ? getOverview(matches)
+                    : method.equals(MESSAGE_TO) ? getMessageReceivers(matches)
+                    : getReadableOutput(matches);
+            FileUtils.write(file, content, Charsets.UTF_8);
+        }
     }
 
-    public static String getPCMarkup(FehlkaufRound round) {
+    private static void writeMultipleFiles(FehlkaufRound matches, File baseFile, String method) throws IOException {
+
+        String baseName = baseFile.getName();
+        String basePath = baseFile.getParent() != null ? baseFile.getParent() : ".";
+        // Strip extension if present, e.g. "output.txt" -> "output" + ".txt"
+        int dotIndex = baseName.lastIndexOf('.');
+        String nameWithoutExt = dotIndex >= 0 ? baseName.substring(0, dotIndex) : baseName;
+        String ext = dotIndex >= 0 ? baseName.substring(dotIndex) : "";
+
+        for (String[] range : NAME_RANGES) {
+            String rangeLabel = range[0];
+            String regex = range[1];
+
+            String content = method.equals(PC_FORMAT)
+                    ? getPCMarkupFiltered(matches, regex)
+                    : getReceiverListFiltered(matches, regex);
+
+            File rangeFile = new File(basePath, nameWithoutExt + "_" + rangeLabel + ext);
+            FileUtils.write(rangeFile, content, Charsets.UTF_8);
+        }
+    }
+
+    private static String getPCMarkupFiltered(FehlkaufRound round, String regex) {
 
         TreeMap<MemberData, List<MemberData>> thisRound = round.getSenders();
         StringBuilder builder = new StringBuilder();
         for (MemberData user : thisRound.keySet()) {
-            if (!user.hasNoCards()) {
+            if (!user.hasNoCards() && user.getUserName().toLowerCase().matches(regex)) {
                 builder.append(String.format("**%s (%d Karten)**\n[details=\"Summary\"]\n", user.getUserName(), user.getCards()));
                 for (MemberData match : thisRound.get(user)) {
                     builder.append(String.format("@%s\n%s\n\n", match.getUserName(), match.getAddress()));
@@ -118,12 +147,12 @@ public final class FehlkaufFileUtils {
                 .collect(Collectors.joining(" "));
     }
 
-    private static String getReceiverList(FehlkaufRound round) {
+    private static String getReceiverListFiltered(FehlkaufRound round, String regex) {
 
         StringBuilder builder = new StringBuilder();
         TreeMap<MemberData, List<MemberData>> receivers = round.getReceivers();
         for (MemberData member : receivers.keySet()) {
-            if (!member.hasNoCards()) {
+            if (!member.hasNoCards() && member.getUserName().toLowerCase().matches(regex)) {
                 builder.append(String.format("**%s bekommt %d Karten von:**\n[details=\"Summary\"]\n", member.getUserName(), member.getCards()));
                 for (MemberData sender : receivers.get(member)) {
                     builder.append(String.format("%s\n", sender.getUserName()));
