@@ -1,6 +1,7 @@
 package org.bille;
 
 import com.opencsv.exceptions.CsvException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -17,10 +18,10 @@ public class FehlkaufTest {
 
         List<MemberData> data = readWithFehlKaufReader("members.csv");
         MemberData first = data.get(0);
-        assertEquals(first.getUserName(), "miau123");
-        assertEquals(first.getAddress(), "Mieze Katz, Miau Str. 12, 12345 Berlin");
+        assertEquals("miau123", first.getUserName());
+        assertEquals("Mieze Katz, Miau Str. 12, 12345 Berlin", first.getAddress());
         assertFalse(first.isMax());
-        assertEquals(first.getCards(), 3);
+        assertEquals(3, first.getCards());
     }
 
     @Test
@@ -32,6 +33,15 @@ public class FehlkaufTest {
         assertFalse(FehlkaufFileUtils.getOverview(fehlkaufRound).isEmpty());
     }
 
+    @Test
+    @Disabled("TODO: Fix joke entries!")
+    public void testRidiculousWishes() throws IOException, CsvException {
+
+        List<MemberData> members = readWithFehlKaufReader("ridiculousWishes.csv");
+        MemberMatcher matcher = new MemberMatcher(members);
+        FehlkaufRound fehlkaufRound = matcher.match();
+        assertFalse(FehlkaufFileUtils.getOverview(fehlkaufRound).isEmpty());
+    }
 
     private List<MemberData> readWithFehlKaufReader(String testFile) throws IOException, CsvException {
 
