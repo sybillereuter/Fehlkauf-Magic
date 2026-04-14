@@ -8,9 +8,10 @@ import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,7 +34,7 @@ public final class FehlkaufFileUtils {
     public static List<MemberData> readFrom(String fileName) throws IOException, CsvException {
 
         List<MemberData> members = new ArrayList<>();
-        CSVReader reader = new CSVReaderBuilder(new InputStreamReader(new FileInputStream(fileName), UTF_8))
+        CSVReader reader = new CSVReaderBuilder(new InputStreamReader(Files.newInputStream(Paths.get(fileName)), UTF_8))
                 .withCSVParser(new CSVParserBuilder().withSeparator(';').build())
                 .build();
         List<String[]> lines = reader.readAll();
@@ -41,7 +42,8 @@ public final class FehlkaufFileUtils {
             String name = line[0].replaceAll("\uFEFF", "");
             String address = line[1];
             String cardsString = line[2];
-            boolean isMax = "max".equalsIgnoreCase(cardsString);
+            boolean isMax = "max".equalsIgnoreCase(cardsString)
+                    || (!"".equalsIgnoreCase(cardsString) && Integer.parseInt(cardsString) > 50); // autocorrect "fun" wishes
             int cards = !isMax && !"".equalsIgnoreCase(cardsString) ? Integer.parseInt(cardsString) : 0;
             members.add(new MemberData(name, address, isMax, cards));
         }

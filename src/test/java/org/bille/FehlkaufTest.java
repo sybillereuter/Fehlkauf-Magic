@@ -1,7 +1,6 @@
 package org.bille;
 
 import com.opencsv.exceptions.CsvException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -34,7 +33,6 @@ public class FehlkaufTest {
     }
 
     @Test
-    @Disabled("TODO: Fix joke entries!")
     public void testRidiculousWishes() throws IOException, CsvException {
 
         List<MemberData> members = readWithFehlKaufReader("ridiculousWishes.csv");
