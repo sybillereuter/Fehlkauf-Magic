@@ -122,6 +122,7 @@ public final class FehlkaufFileUtils {
         StringBuilder builder  = new StringBuilder();
         builder.append("Die Karten in dieser Runde:\n");
         List<Integer> sortedNumbers = overview.keySet().stream()
+                .filter(key -> key != 0)
                 .sorted((x,y) -> Integer.compare(y,x))
                 .collect(Collectors.toList());
         for (Integer cards : sortedNumbers) {
