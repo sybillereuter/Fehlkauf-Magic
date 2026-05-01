@@ -27,7 +27,9 @@ mvn package -Pgui
   1. Grafische Oberfläche (einfach)  
 Einfach die `FehlkaufWizard.exe` oder `FehlkaufWizard-jar-with-dependencies.jar` doppelklicken!
 
-  2. Kommandozeile:  
+![Oberfläche](img/fehlkauf-wizard.jpg)
+
+  2. Oder über die Kommandozeile:  
    ```bash
    java -jar target/FehlkaufMatcher.jar <PFAD_ZUM_ORDNER> <RUNDENNUMMER>
 ```
