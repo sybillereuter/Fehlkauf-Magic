@@ -31,7 +31,7 @@ Einfach die `FehlkaufWizard.exe` oder `FehlkaufWizard-jar-with-dependencies.jar`
 
   2. Oder über die Kommandozeile:  
    ```bash
-   java -jar target/FehlkaufMatcher.jar <PFAD_ZUM_ORDNER> <RUNDENNUMMER>
+   java -jar target/FehlkaufRunner.jar <PFAD_ZUM_ORDNER> <RUNDENNUMMER>
 ```
 
 ### 3. **Ergebnisse checken** 
